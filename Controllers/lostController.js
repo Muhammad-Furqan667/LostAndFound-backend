@@ -84,14 +84,23 @@ export const addLost = async (req, res) => {
       imageUrl = publicUrlData.publicUrl;
     } else {
       // If no file provided, get default image from category_defaults table
-      const { data: defaultData, error: defaultError } = await supabase
-        .from("category_defaults")
-        .select("default_image")
-        .eq("category", Category)
-        .single();
+      // SKIP for "Others" category as requested
+      if (Category.toLowerCase() === 'others') {
+        imageUrl = null;
+      } else {
+        const { data: defaultData, error: defaultError } = await supabase
+          .from("category_defaults")
+          .select("default_image")
+          .ilike("category", Category)  // Case-insensitive match
+          .single();
 
-      if (!defaultError && defaultData) {
-        imageUrl = defaultData.default_image;
+        if (defaultError) {
+          // console.error('Error fetching default image:', defaultError);
+        }
+
+        if (!defaultError && defaultData) {
+          imageUrl = defaultData.default_image;
+        }
       }
     }
 
