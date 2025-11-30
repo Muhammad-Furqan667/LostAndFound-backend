@@ -6,11 +6,12 @@ import {
   getLostById,
   deleteLost,
 } from "../Controllers/lostController.js";
+import { authenticateUser } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 router.get("/", getAllLost);
-router.post("/", upload.single("imageURL"), addLost);
+router.post("/", authenticateUser, upload.single("imageURL"), addLost);
 router.get("/:id", getLostById);
 router.delete("/:id", deleteLost);
 

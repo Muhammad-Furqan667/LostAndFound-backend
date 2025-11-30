@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import lostRoutes from "./routes/lostRoutes.js";
 import foundRoutes from "./routes/foundRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -14,6 +15,10 @@ app.use(express.json());
 // routes
 app.use("/api/lost", lostRoutes);
 app.use("/api/found", foundRoutes);
+app.use("/api/users", userRoutes);
+
+
+console.log("Backend restarted at:", Date.now());
 
 const PORT = process.env.PORT || 8081;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -37,10 +37,33 @@ const storage = multer.memoryStorage();
 export const upload = multer({ storage });
 export const addLost = async (req, res) => {
   try {
+    // Check if req.body exists
+    if (!req.body) {
+      return res.status(400).json({ 
+        error: "Request body is missing. Make sure you're sending data correctly." 
+      });
+    }
+
     const { name, description, location, contact, date } = req.body;
     const file = req.file;
     let imageUrl = null;
     const itemDate = date || new Date().toISOString();
+
+    // Get logged-in user's reg_no from auth middleware
+    const addedBy = req.user?.reg_no;
+
+    if (!addedBy) {
+      return res.status(401).json({ 
+        error: "User not authenticated. Please login first." 
+      });
+    }
+
+    // Validate required fields
+    if (!name || !description || !location) {
+      return res.status(400).json({ 
+        error: "name, description, and location are required fields" 
+      });
+    }
 
     // 3. If an image is uploaded, store it in Supabase Storage
     if (file) {
@@ -70,6 +93,7 @@ export const addLost = async (req, res) => {
         contact,
         date: itemDate,
         imageURL: imageUrl,
+        added_by: addedBy, // Foreign key to users.reg_no
       },
     ]);
 
@@ -77,6 +101,7 @@ export const addLost = async (req, res) => {
 
     res.json({ message: "Lost item added successfully", data });
   } catch (error) {
+    console.error("Error in addLost:", error);
     res.status(400).json({ error: error.message });
   }
 };
