@@ -44,7 +44,7 @@ export const addLost = async (req, res) => {
       });
     }
 
-    const { name, description, location, contact, date } = req.body;
+    const { name, description, location, contact, date, Category } = req.body;
     const file = req.file;
     let imageUrl = null;
     const itemDate = date || new Date().toISOString();
@@ -59,9 +59,9 @@ export const addLost = async (req, res) => {
     }
 
     // Validate required fields
-    if (!name || !description || !location) {
+    if (!name || !description || !location || !Category) {
       return res.status(400).json({ 
-        error: "name, description, and location are required fields" 
+        error: "name, description, location, and Category are required fields" 
       });
     }
 
@@ -82,6 +82,17 @@ export const addLost = async (req, res) => {
         .getPublicUrl(`lost/${fileName}`);
 
       imageUrl = publicUrlData.publicUrl;
+    } else {
+      // If no file provided, get default image from category_defaults table
+      const { data: defaultData, error: defaultError } = await supabase
+        .from("category_defaults")
+        .select("default_image")
+        .eq("category", Category)
+        .single();
+
+      if (!defaultError && defaultData) {
+        imageUrl = defaultData.default_image;
+      }
     }
 
     // 5. Insert record into database
@@ -91,6 +102,7 @@ export const addLost = async (req, res) => {
         description,
         location,
         contact,
+        Category,
         date: itemDate,
         imageURL: imageUrl,
         added_by: addedBy, // Foreign key to users.reg_no
